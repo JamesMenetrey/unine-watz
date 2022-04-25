@@ -1,0 +1,82 @@
+#!/bin/sh
+
+DAEMON="tee-supplicant"
+DAEMON_PATH="/usr/sbin"
+DAEMON_ARGS="-d /dev/teepriv0"
+PIDFILE="/var/run/$DAEMON.pid"
+
+start() {
+	# tee-supplicant and the client applications need not run as
+	# root provided that the TEE devices and the data store have
+	# proper permissions
+	printf 'Set permissions on %s: ' "/dev/tee*"
+	chown root:tee /dev/teepriv0 && chmod 0660 /dev/teepriv0 && \
+		chown root:teeclnt /dev/tee0 && chmod 0660 /dev/tee0
+	status=$?
+	if [ "$status" -eq 0 ]; then
+		echo "OK"
+	else
+		echo "FAIL"
+		return "$status"
+	fi
+	if [ -e /dev/ion ]; then
+		printf 'Set permissions on %s: ' "/dev/ion"
+		chown root:ion /dev/ion && chmod 0660 /dev/ion
+		status=$?
+		if [ "$status" -eq 0 ]; then
+			echo "OK"
+		else
+			echo "FAIL"
+			return "$status"
+		fi
+	fi
+	printf 'Create/set permissions on %s: ' "/data/tee"
+	mkdir -p /data/tee && chown -R tee:tee /data/tee && chmod 0770 /data/tee
+	status=$?
+	if [ "$status" -eq 0 ]; then
+		echo "OK"
+	else
+		echo "FAIL"
+		return "$status"
+	fi
+	printf 'Starting %s: ' "$DAEMON"
+	start-stop-daemon -S -q -p "$PIDFILE" -c tee -x "$DAEMON_PATH/$DAEMON" \
+		-- $DAEMON_ARGS
+	status=$?
+	if [ "$status" -eq 0 ]; then
+		echo "OK"
+	else
+		echo "FAIL"
+	fi
+	return "$status"
+}
+
+stop() {
+	printf 'Stopping %s: ' "$DAEMON"
+	start-stop-daemon -K -q -p "$PIDFILE"
+	status=$?
+	if [ "$status" -eq 0 ]; then
+		echo "OK"
+	else
+		echo "FAIL"
+	fi
+	return "$status"
+}
+
+restart() {
+	stop
+	sleep 1
+	start
+}
+
+case "$1" in
+        start|stop|restart)
+		"$1";;
+	reload)
+		# Restart, since there is no true "reload" feature (does not
+		# reconfigure/restart on SIGHUP, just closes all open files).
+		restart;;
+        *)
+                echo "Usage: $0 {start|stop|restart|reload}"
+                exit 1
+esac

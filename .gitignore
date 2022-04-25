@@ -1,0 +1,8 @@
+optee_client/
+optee_test/
+optee_examples/
+linux/
+buildroot/
+trusted-firmware-a/
+u-boot/
+imx-mkimage/

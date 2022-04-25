@@ -1,0 +1,114 @@
+#!/usr/bin/expect -f
+#
+# This scripts starts QEMU, loads and boots Linux/OP-TEE, then runs
+# xtest in the guest. The return code is 0 for success, >0 for error.
+#
+# Options:
+#   --bios    Path to the binary to be run [../out/bios-qemu/bios.bin]
+#   -q        Suppress output to stdout (quiet)
+#   --timeout Timeout for each test (sub)case, in seconds [480]
+
+set bios "../out/bios-qemu/bios.bin"
+set cmd "xtest"
+set quiet 0
+
+# The time required to run some tests (e.g., key generation tests [4007.*])
+# can be significant and vary widely -- typically, from about one minute to
+# several minutes depending on the host machine.
+# The value here should be sufficient to run the whole optee_test suite
+# ('xtest') with all testsuites enabled (regression+gp+pkcs11).
+set timeout 900
+
+# Parse command line
+set myargs $argv
+while {[llength $myargs]} {
+	set myargs [lassign $myargs arg]
+	switch -exact -- $arg {
+		"--bios"	{set myargs [lassign $myargs ::bios]}
+		"--timeout"	{set myargs [lassign $myargs ::timeout]}
+		"-q"		{set ::quiet 1}
+	}
+}
+
+proc info arg {
+	if {$::quiet==1} { return }
+	puts -nonewline $arg
+	flush stdout
+}
+
+# Disable echoing of guest output
+log_user 0
+# Save guest console output to a file
+log_file -a -noappend "serial0.log"
+info "Starting QEMU..."
+open "serial1.log" "w+"
+spawn -open [open "|tail -f serial1.log"]
+set teecore $spawn_id
+if {[string first "aarch64" $::env(QEMU)] != -1} {
+	spawn $::env(QEMU) -nographic -serial mon:stdio -serial file:serial1.log -smp $::env(QEMU_SMP) -machine virt,secure=on -cpu cortex-a57 -d unimp -semihosting-config enable=on,target=native -m 1057 -bios bl1.bin -initrd rootfs.cpio.gz -kernel Image -no-acpi -append "console=ttyAMA0,38400 keep_bootcon root=/dev/vda2"
+} else {
+	spawn $::env(QEMU) -nographic -monitor none -machine virt -machine secure=on -cpu cortex-a15 -smp $::env(QEMU_SMP) -d unimp -semihosting-config enable=on,target=native -m 1057 -serial stdio -serial file:serial1.log -bios $bios
+}
+expect {
+	"Kernel panic" {
+		info "!!! Kernel panic\n"
+		exit 1
+	}
+	timeout {
+		info "!!! Timeout\n"
+		exit 1
+	}
+	"ogin:"
+}
+send -- "root\r\r"
+expect "# "
+info " done, guest is booted.\n"
+# Toolchain libraries might be here or there
+send -- "export LD_LIBRARY_PATH=/lib:/lib/arm-linux-gnueabihf\r"
+expect "# "
+info "Running: $cmd...\n"
+send -- "$cmd\r"
+set casenum "none"
+expect {
+	# Exit with error status as soon as a test fails
+	-re {  ([^ ]+) FAIL} {
+		info " $expect_out(1,string) FAIL\n"
+		exit 1
+	}
+	-re {rcu_sched detected stalls} {
+		info " Kernel error: '$expect_out(0,string)'\n"
+		exit 1
+	}
+	# Crude progress indicator: print one # when each test [sub]case starts
+	-re {([\*o]) ([^ ]+) } {
+		set casenum $expect_out(2,string)
+		if {$expect_out(1,string) == "o"} {
+			if {$star == 1} {
+				# Do not count first subcase ('o') since start
+				# of test ('*') was counted already
+				set star 0
+				exp_continue
+			}
+		} else {
+			set star 1
+		}
+		info "#"
+		incr ncases
+		if {$ncases % 50 == 0} { info "\n" }
+		exp_continue
+	}
+	# Exit when result separator is seen
+	"+-----------------------------------------------------\r\r" {}
+	# Handle errors in TEE core output
+	-i $teecore -re {(assertion.*failed at.*)\n} {
+		info "!!! $expect_out(1,string)\n"
+		exit 1
+	}
+	timeout {
+		info "!!! Timeout\n"
+		info "TIMEOUT - test case too long or hung? (last test started: $casenum)\n"
+		exit 2
+	}
+}
+info "\nStatus: PASS ($ncases test cases)\n"
+

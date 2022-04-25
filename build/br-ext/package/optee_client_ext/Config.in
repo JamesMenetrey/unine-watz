@@ -1,0 +1,10 @@
+config BR2_PACKAGE_OPTEE_CLIENT_EXT
+	bool "optee_client"
+	help
+	  http://github.org/OP-TEE/optee_client
+
+config BR2_PACKAGE_OPTEE_CLIENT_EXT_SITE
+	string "OP-TEE client path"
+	default ""
+	help
+	  The path to the source directory of OP-TEE client

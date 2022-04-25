@@ -1,0 +1,119 @@
+/* SPDX-License-Identifier: BSD-2-Clause */
+/*
+ * Copyright (c) 2015, Linaro Limited
+ * Copyright (c) 2019, Arm Limited. All rights reserved.
+ */
+#ifndef ARM_H
+#define ARM_H
+
+#include <stdint.h>
+#include <util.h>
+
+/* MIDR definitions */
+#define MIDR_PRIMARY_PART_NUM_SHIFT	U(4)
+#define MIDR_PRIMARY_PART_NUM_WIDTH	U(12)
+#define MIDR_PRIMARY_PART_NUM_MASK	(BIT(MIDR_PRIMARY_PART_NUM_WIDTH) - 1)
+
+#define MIDR_IMPLEMENTER_SHIFT		U(24)
+#define MIDR_IMPLEMENTER_WIDTH		U(8)
+#define MIDR_IMPLEMENTER_MASK		(BIT(MIDR_IMPLEMENTER_WIDTH) - 1)
+#define MIDR_IMPLEMENTER_ARM		U(0x41)
+
+#define CORTEX_A7_PART_NUM		U(0xC07)
+#define CORTEX_A8_PART_NUM		U(0xC08)
+#define CORTEX_A9_PART_NUM		U(0xC09)
+#define CORTEX_A15_PART_NUM		U(0xC0F)
+#define CORTEX_A17_PART_NUM		U(0xC0E)
+#define CORTEX_A57_PART_NUM		U(0xD07)
+#define CORTEX_A72_PART_NUM		U(0xD08)
+#define CORTEX_A73_PART_NUM		U(0xD09)
+#define CORTEX_A75_PART_NUM		U(0xD0A)
+
+/* MPIDR definitions */
+#define MPIDR_AFFINITY_BITS	U(8)
+#define MPIDR_AFFLVL_MASK	U(0xff)
+#define MPIDR_AFF0_SHIFT	U(0)
+#define MPIDR_AFF0_MASK		(MPIDR_AFFLVL_MASK << MPIDR_AFF0_SHIFT)
+#define MPIDR_AFF1_SHIFT	U(8)
+#define MPIDR_AFF1_MASK		(MPIDR_AFFLVL_MASK << MPIDR_AFF1_SHIFT)
+#define MPIDR_AFF2_SHIFT	U(16)
+#define MPIDR_AFF2_MASK		(MPIDR_AFFLVL_MASK << MPIDR_AFF2_SHIFT)
+
+#define MPIDR_MT_SHIFT		U(24)
+#define MPIDR_MT_MASK		BIT(MPIDR_MT_SHIFT)
+
+#define MPIDR_CPU_MASK		MPIDR_AFF0_MASK
+#define MPIDR_CLUSTER_SHIFT	MPIDR_AFF1_SHIFT
+#define MPIDR_CLUSTER_MASK	MPIDR_AFF1_MASK
+
+#define MPIDR_AARCH32_AFF_MASK	(MPIDR_AFF0_MASK | MPIDR_AFF1_MASK | \
+				 MPIDR_AFF2_MASK)
+
+/* CLIDR definitions */
+#define CLIDR_LOUIS_SHIFT	U(21)
+#define CLIDR_LOC_SHIFT		U(24)
+#define CLIDR_FIELD_WIDTH	U(3)
+
+/* CSSELR definitions */
+#define CSSELR_LEVEL_SHIFT	U(1)
+
+/* CTR definitions */
+#define CTR_CWG_SHIFT		U(24)
+#define CTR_CWG_MASK		U(0xf)
+#define CTR_ERG_SHIFT		U(20)
+#define CTR_ERG_MASK		U(0xf)
+#define CTR_DMINLINE_SHIFT	U(16)
+#define CTR_DMINLINE_WIDTH	U(4)
+#define CTR_DMINLINE_MASK	(BIT(4) - 1)
+#define CTR_L1IP_SHIFT		U(14)
+#define CTR_L1IP_MASK		U(0x3)
+#define CTR_IMINLINE_SHIFT	U(0)
+#define CTR_IMINLINE_MASK	U(0xf)
+#define CTR_WORD_SIZE		U(4)
+
+#define ARM32_CPSR_MODE_MASK	U(0x1f)
+#define ARM32_CPSR_MODE_USR	U(0x10)
+#define ARM32_CPSR_MODE_FIQ	U(0x11)
+#define ARM32_CPSR_MODE_IRQ	U(0x12)
+#define ARM32_CPSR_MODE_SVC	U(0x13)
+#define ARM32_CPSR_MODE_MON	U(0x16)
+#define ARM32_CPSR_MODE_ABT	U(0x17)
+#define ARM32_CPSR_MODE_UND	U(0x1b)
+#define ARM32_CPSR_MODE_SYS	U(0x1f)
+
+#define ARM32_CPSR_T		BIT(5)
+#define ARM32_CPSR_F_SHIFT	U(6)
+#define ARM32_CPSR_F		BIT(6)
+#define ARM32_CPSR_I		BIT(7)
+#define ARM32_CPSR_A		BIT(8)
+#define ARM32_CPSR_E		BIT(9)
+#define ARM32_CPSR_FIA		(ARM32_CPSR_F | ARM32_CPSR_I | ARM32_CPSR_A)
+#define ARM32_CPSR_IT_MASK	(ARM32_CPSR_IT_MASK1 | ARM32_CPSR_IT_MASK2)
+#define ARM32_CPSR_IT_MASK1	U(0x06000000)
+#define ARM32_CPSR_IT_MASK2	U(0x0000fc00)
+
+/* ARM Generic timer definitions */
+#define CNTKCTL_PL0PCTEN	BIT(0) /* physical counter el0 access enable */
+#define CNTKCTL_PL0VCTEN	BIT(1) /* virtual counter el0 access enable */
+
+#ifdef ARM32
+#include <arm32.h>
+#endif
+
+#ifdef ARM64
+#include <arm64.h>
+#endif
+
+#ifndef __ASSEMBLER__
+static inline __noprof uint64_t barrier_read_counter_timer(void)
+{
+	isb();
+#ifdef CFG_CORE_SEL2_SPMC
+	return read_cntvct();
+#else
+	return read_cntpct();
+#endif
+}
+#endif
+
+#endif /*ARM_H*/

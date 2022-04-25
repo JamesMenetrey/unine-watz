@@ -1,0 +1,6 @@
+[submodule "benchmarks/dist/webassembly-polybench-c"]
+	path = benchmarks/dist/webassembly-polybench-c
+	url = https://github.com/JamesMenetrey/webassembly-polybench-c
+[submodule "benchmarks/dist/polybench-c"]
+	path = benchmarks/dist/polybench-c
+	url = https://github.com/JamesMenetrey/polybench-c.git

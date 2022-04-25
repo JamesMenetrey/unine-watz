@@ -1,0 +1,121 @@
+/* 
+ * Adaption of WaTZ remote attestation protocol.
+ *
+ * Written by James Menetrey, University of Neuchatel, Switzerland.
+ *
+ * Conventions:
+ *   - Signatures: for simplification, a signature for message "m" has been reduced under
+ *	   the form of "{m}sk{Actor}".
+ *
+ * Notes:
+ *  - While the formal specifications omits further derivations of the ECDH shared secret,
+ *	  the implementation derives a KDK used to compute a MAC key and an encryption key,
+ *	  as described in Intel SGX remote attestation and SIGMA.
+ */
+
+// Hash functions
+hashfunction pECDH,shareECDH,mac,sha;
+
+/*
+ * Simulate Ga*v = Gv*a (ECC version of the DH g^av = g^va).
+ */
+protocol @EccScalarMultiplication(Derivation,DerivationHash)
+{
+    role Derivation
+    {
+        var T1, T2: Ticket;
+        
+        recv_!1(Derivation,Derivation, shareECDH(pECDH(T1),T2));
+        send_!2(Derivation,Derivation, shareECDH(pECDH(T2),T1));
+    }
+    role DerivationHash
+    {
+        var T1, T2, m: Ticket;
+        
+        recv_!3(DerivationHash,DerivationHash, {m}shareECDH(pECDH(T1),T2));
+        send_!4(DerivationHash,DerivationHash, {m}shareECDH(pECDH(T2),T1));
+    }
+}
+
+// The protocol description
+protocol Watz(Attester,Verifier)
+{
+    role Attester
+    {
+        // ECDH parameters
+        fresh a: Nonce;
+        var Gv: Ticket;
+        
+        // Quote elements
+        fresh version, claims: Ticket;
+        
+        // Confidential data
+        var data, iv: Ticket;
+        
+        // Message 0
+        macro content0 = pECDH(a);
+        send_message0(Attester, Verifier, content0);
+        
+        // Message 1
+        macro content1 = Gv, Verifier, {Gv, pECDH(a)}sk(Verifier);
+        recv_!message1(Verifier, Attester, content1, {mac(content1)}shareECDH(Gv,a));
+        
+        // Message 2
+        macro anchor = sha(pECDH(a), Gv);
+        macro quote = {anchor, Attester, version, claims}sk(Attester);
+        macro content2 = pECDH(a), quote;
+        send_!message2(Attester, Verifier, content2, {mac(content2)}shareECDH(Gv,a));
+        
+        // Message 3
+        macro content3 = iv, {iv,data}shareECDH(Gv,a);
+        recv_!message3(Verifier, Attester, content3);
+        
+        claim_a1(Attester, Alive);
+        claim_a2(Attester, Niagree);
+        claim_a3(Attester, Nisynch);
+        claim_a5(Attester, Reachable);
+        claim_a6(Attester, SKR, a);
+        claim_a7(Attester, SKR, shareECDH(Gv,a));
+        claim_a8(Attester, Secret, data);
+    }
+    
+    role Verifier
+    {
+        // ECDH parameters
+        fresh v: Nonce;
+        var Ga: Ticket;
+        
+        // Quote elements
+        var version, claims: Ticket;
+        
+        // Confidential data
+        fresh iv: Nonce;
+        fresh data: Ticket;
+        
+        // Message 0
+        macro content0 = Ga;
+        recv_message0(Attester, Verifier, content0);
+        
+        // Message 1
+        macro content1 = pECDH(v), Verifier, {pECDH(v), Ga}sk(Verifier);
+        send_!message1(Verifier, Attester, content1, {mac(content1)}shareECDH(Ga,v));
+        
+        // Message 2
+        macro anchor = sha(Ga, pECDH(v));
+        macro quote = {anchor, Attester, version, claims}sk(Attester);
+        macro content2 = Ga, quote;
+        recv_!message2(Attester, Verifier, content2, {mac(content2)}shareECDH(Ga,v));
+        
+        // Message 3
+        macro content3 = iv, {iv, data}shareECDH(Ga,v);
+        send_!message3(Verifier, Attester, content3);
+        
+        claim_b1(Verifier, Alive);
+        claim_b2(Verifier, Niagree);
+        claim_b3(Verifier, Nisynch);
+        claim_b5(Verifier, Reachable);
+        claim_b6(Verifier, SKR, v);
+        claim_b7(Verifier, SKR, shareECDH(Ga,v));
+        claim_b8(Verifier, Secret, data);
+    }
+}

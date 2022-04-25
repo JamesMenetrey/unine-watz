@@ -1,0 +1,13 @@
+diff --git a/drivers/tee/optee/rpc.c b/drivers/tee/optee/rpc.c
+index 88d53ced0..57e739803 100644
+--- a/drivers/tee/optee/rpc.c
++++ b/drivers/tee/optee/rpc.c
+@@ -43,7 +43,7 @@ static void handle_rpc_func_cmd_get_time(struct optee_msg_arg *arg)
+ 			OPTEE_MSG_ATTR_TYPE_VALUE_OUTPUT)
+ 		goto bad;
+ 
+-	ktime_get_real_ts64(&ts);
++	ktime_get_ts64(&ts); // Modified for benchmarking purpose; it now retrieves a monotonic time
+ 	arg->params[0].u.value.a = ts.tv_sec;
+ 	arg->params[0].u.value.b = ts.tv_nsec;
+ 

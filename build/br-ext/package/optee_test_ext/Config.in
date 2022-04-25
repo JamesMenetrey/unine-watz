@@ -1,0 +1,52 @@
+config BR2_PACKAGE_OPTEE_TEST_EXT
+	bool "optee_test"
+	select BR2_PACKAGE_OPTEE_CLIENT_EXT
+	help
+	  http://github.org/OP-TEE/optee_test
+
+config BR2_PACKAGE_OPTEE_TEST_EXT_SITE
+	string "OP-TEE test path"
+	default ""
+	help
+	  The path to the source directory of OP-TEE test
+
+if BR2_PACKAGE_OPTEE_TEST_EXT
+
+config BR2_PACKAGE_OPTEE_TEST_EXT_SDK
+	string "OPTEE SDK path"
+	default ""
+	help
+	  some help
+
+config BR2_PACKAGE_OPTEE_TEST_EXT_CROSS_COMPILE
+	string "OPTEE cross compiler"
+	default ""
+	help
+	  some help
+
+config BR2_PACKAGE_OPTEE_TEST_EXT_GP_PACKAGE
+	string "GP package"
+	default ""
+	help
+	  Path to the GlobalPlatform package containing description files
+	  and TAs needed to build the complete GP test suite. The package
+	  is free for GP members, but can be acquired directly from
+	  GlobalPlatform for non-members. See
+	  https://globalplatform.org/test-suites/tee-initial-configuration-test-suite-with-excluded-tests-list/
+	  The name of the package is currently "TEE Initial Configuration
+	  Test Suite with Excluded Tests List v2.0.0.2" with the file name
+	  TEE_Initial_Configuration-Test_Suite_v2_0_0_2-2017_06_09.7z
+
+config BR2_PACKAGE_OPTEE_TEST_EXT_WITH_TLS_TESTS
+	bool "with-tls-tests"
+	help
+	  Select Thread Local Storage tests in Trusted Applications. Some
+	  toolchains may not support this.
+
+config BR2_PACKAGE_OPTEE_TEST_EXT_WITH_CXX_TESTS
+	bool "with-cxx-tests"
+	help
+	  Select C++ tests in Trusted Applications. Some toolchains may not
+	  support this.
+
+endif

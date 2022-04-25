@@ -1,0 +1,12 @@
+*.a
+*.dmp
+*.elf
+*.ld.d
+*.lds
+*.map
+*.o
+*.o.cmd
+*.o.d
+*.ta
+dyn_list
+out/

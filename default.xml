@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+        <remote name="github" fetch="https://github.com" />
+        <remote name="linaro" fetch="https://git.linaro.org" />
+        <remote name="tfo"    fetch="https://git.trustedfirmware.org" />
+        <remote name="ca"     fetch="https://source.codeaurora.org/external/imx" />
+
+        <default remote="github" revision="master" />
+
+        <!-- WaTZ -->
+        <project path="runtime"              name="JamesMenetrey/unine-watz/runtime" />
+        <project path="benchmarks"           name="JamesMenetrey/unine-watz/benchmarks" />
+
+        <!-- OP-TEE gits -->
+        <project path="optee_client"         name="OP-TEE/optee_client.git"               revision="fa1d30c95d6f84cffed59220c0443709c303866c" />
+        <project path="optee_test"           name="OP-TEE/optee_test.git"                 revision="81e71a80cb070e71e79ffcf325e2f94deaebeeb7" />
+
+        <!-- linaro-swg gits -->
+        <project path="linux"                name="linaro-swg/linux.git"                  revision="optee" clone-depth="1" />
+        <project path="optee_examples"       name="linaro-swg/optee_examples.git"         revision="5ceb1ffedf0fe5263697794a64ab47a7d35fe412" />
+
+        <!-- Misc gits -->
+        <project path="buildroot"            name="buildroot/buildroot.git"               revision="refs/tags/2021.02" clone-depth="1" />
+        <project path="trusted-firmware-a"   name="TF-A/trusted-firmware-a.git"           revision="refs/tags/v2.3" clone-depth="1" remote="tfo" />
+        <project path="u-boot"               name="u-boot/u-boot.git"                     revision="refs/tags/v2020.10-rc2" clone-depth="1" />
+        <project path="imx-mkimage"          name="imx-mkimage.git"                       revision="refs/tags/rel_imx_5.4.24_2.1.0" clone-depth="1" remote="ca" />
+</manifest>
