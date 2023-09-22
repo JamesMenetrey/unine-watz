@@ -1,8 +1,8 @@
 # WaTZ: A Trusted WebAssembly Runtime Environment with Remote Attestation for TrustZone
 
-DOI: TBA
+DOI: [10.1109/ICDCS54860.2022.00116](https://doi.ieeecomputersociety.org/10.1109/ICDCS54860.2022.00116)
 
-IEEE Xplore | arXiv (TBA)
+[IEEE Computer Society](https://www.computer.org/csdl/proceedings-article/icdcs/2022/717700b177/1HriZ4jSthK) | [arXiv](https://arxiv.org/abs/2206.08722)
 
 The paper version will be published in the proceedings of the 42nd IEEE International Conference on Distributed Computing Systems (ICDCS'22).
 
