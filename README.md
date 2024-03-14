@@ -22,3 +22,8 @@ Check the file `LICENSE` for more information.
 ## Authors
 
 {Jämes Ménétrey, Marcelo Pasin, Pascal Felber, Valerio Schiavoni} @ University of Neuchâtel, Switzerland
+
+## Funding
+
+This software artefact incorporates results from the VEDLIoT project, which received funding from the European Union's Horizon 2020 research and innovation programme under grant agreement No 957197.  
+[www.vedliot.eu](https://www.vedliot.eu)
