@@ -25,4 +25,4 @@ clone_shallow https://github.com/linaro-swg/linux.git linux optee
 clone_shallow https://github.com/buildroot/buildroot.git buildroot 2021.02
 clone_shallow https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git trusted-firmware-a v2.3
 clone_shallow https://github.com/u-boot/u-boot.git u-boot v2020.10-rc2
-clone_shallow https://source.codeaurora.org/external/imx/imx-mkimage.git imx-mkimage rel_imx_5.4.24_2.1.0
+clone_shallow https://github.com/nxp-imx/imx-mkimage.git imx-mkimage rel_imx_5.4.24_2.1.0
